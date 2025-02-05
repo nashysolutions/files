@@ -155,4 +155,19 @@ struct DirectoryTests {
         #expect(endpoints.contains(.locationExists), "The correct endpoint should have been called.")
         #expect(endpoints.contains(.deleteLocation), "The correct endpoint should have been called.")
     }
+    
+    @Test("It creates a resource with the correct name and enclosing folder.")
+    func testResourceCreation() throws {
+        
+        // 1. Given - A mock folder and resource name
+        let folder = MockFolder(location: URL(fileURLWithPath: "/test-folder"))
+        let resourceName = "test-file.txt"
+
+        // 2. When - We create a resource using `resource(named:)`
+        let resource = folder.resource(named: resourceName)
+
+        // 3. Then - Verify the resource properties
+        #expect(resource.name == resourceName, "The resource should have the correct name.")
+        #expect(resource.enclosingFolder.location == folder.location, "The enclosing folder should match the folder.")
+    }
 }

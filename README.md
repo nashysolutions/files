@@ -69,6 +69,14 @@ let folder = Folder(location: location)
 try folder.createDirectoryIfNecessary(using: agent)
 ```
 
+### Creating a File
+
+```swift
+let location: URL = /* some directory */
+let folder = Folder(location: location)
+let resource: some File & ~Copyable = folder.resource(named: "dogs.json")
+```
+
 ### Writing a File
 
 ```swift

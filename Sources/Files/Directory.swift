@@ -42,6 +42,19 @@ public extension Directory {
             )
     }
     
+    /// Retrieves a resource (file) within this directory by name.
+    ///
+    /// This method creates an instance representing a file with the given name inside the current directory.
+    /// The returned resource conforms to `File` and is non-copyable (`~Copyable`).
+    ///
+    /// - Parameter name: The name of the resource (file) to retrieve.
+    /// - Returns: A `File` instance representing the requested resource.
+    /// - Note: The returned resource is non-copyable, meaning it cannot be duplicated or reassigned after consumption.
+    /// - SeeAlso: ``createResource(named:with:using:)``
+    func resource(named name: String) -> some File & ~Copyable {
+        Resource(name: name, enclosingFolder: self)
+    }
+    
     /// Creates a resource (file) in the directory with the given name and data.
     ///
     /// This method ensures that the directory exists before creating the resource. If the directory
@@ -77,7 +90,7 @@ public extension Directory {
     }
 }
 
-private struct Resource<Folder: Directory>: File {
+private struct Resource<Folder: Directory>: ~Copyable, File {
     let name: String
     let enclosingFolder: Folder
 }
