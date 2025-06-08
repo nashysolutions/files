@@ -143,7 +143,7 @@ struct SaveResource<Folder: Directory, Context: FileSystemContext> {
 
 ## Why Use `~Copyable`?
 
-Demo ![here](https://tinyurl.com/mpfx4udw)
+Demo [here](https://tinyurl.com/mpfx4udw)
 
 While the `File` and `Directory` protocols do not require `~Copyable`, it is **strongly recommended** to suppress `Copyable` in conforming types. This prevents unintended copies of objects that represent real-world file system entities. By ensuring instances are non-copyable:
 
