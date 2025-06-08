@@ -19,7 +19,7 @@ struct DirectoryTests {
         let folder = MockFolder(location: location)
         
         let context = MockContext(
-            locationExistsHandler: { _ in
+            folderExistsHandler: { _ in
                 /// 1. Given - A folder that does not exist
                 return false
             },
@@ -29,13 +29,10 @@ struct DirectoryTests {
             })
         
         /// 2. When - We attempt to create the folder
-        try folder.createDirectoryIfNecessary(using: context)
+        try folder.createIfNecessary(using: context)
         
         /// 4. Then - These endpoints are called
-        let endpoints = context.called
-        #expect(endpoints.count == 2, "Exactly two endpoints should have been called.")
-        #expect(endpoints.contains(.locationExists), "The correct endpoint should have been called.")
-        #expect(endpoints.contains(.createDirectory), "The correct endpoint should have been called.")
+        #expect(context.called == [.folderExists, .createDirectory])
     }
 
     @Test("It throws an error when create fails.")
@@ -47,12 +44,11 @@ struct DirectoryTests {
         let error = NSError(domain: "MockError", code: 1, userInfo: nil)
         
         let context = MockContext(
-            locationExistsHandler: { _ in
-                /// 1. Given - A directory that does not exist
+            folderExistsHandler: { _ in
+                /// 1. Given - A folder that does not exist
                 return false
             },
             createDirectoryHandler: { url in
-                
                 /// 4. Then - The URL here matches the location of the folder
                 #expect(url == folder.location, "The correct path should be used.")
                 
@@ -63,17 +59,14 @@ struct DirectoryTests {
         
         #expect(performing: {
             /// 3. When - Attempting to create the directory
-            try folder.createDirectoryIfNecessary(using: context)
+            try folder.createIfNecessary(using: context)
         }, throws: {
             /// 5. Then - An error is thrown
             return ($0 as NSError) == error
         })
         
         /// 6. Then - These endpoints are called
-        let endpoints = context.called
-        #expect(endpoints.count == 2, "Exactly one endpoint should have been called.")
-        #expect(endpoints.contains(.locationExists), "The correct endpoint should have been called.")
-        #expect(endpoints.contains(.createDirectory), "The correct endpoint should have been called.")
+        #expect(context.called == [.folderExists, .createDirectory])
     }
     
     @Test("Create is not attempted when the folder already exists.")
@@ -83,16 +76,14 @@ struct DirectoryTests {
         let folder = MockFolder(location: location)
         
         let context = MockContext(
-            locationExistsHandler: { _ in
-                /// 1. Given - A folder that does exist
+            folderExistsHandler: { _ in
+                /// 1. Given - A folder that already exists
                 return true
             })
 
-        try folder.createDirectoryIfNecessary(using: context)
+        try folder.createIfNecessary(using: context)
         
-        let endpoints = context.called
-        #expect(endpoints.count == 1, "Exactly one endpoint should have been called.")
-        #expect(endpoints.contains(.locationExists), "The correct endpoint should have been called.")
+        #expect(context.called == [.folderExists], "Only folder existence should be checked; creation must not be attempted.")
     }
     
     @Test("It successfully deletes a folder.")
@@ -102,8 +93,8 @@ struct DirectoryTests {
         let folder = MockFolder(location: location)
         
         let context = MockContext(
-            locationExistsHandler: { _ in
-                /// 1. Given - A directory that does exist
+            folderExistsHandler: { _ in
+                /// 1. Given - A folder that exists
                 return true
             },
             deleteLocationHandler: { url in
@@ -112,14 +103,11 @@ struct DirectoryTests {
             }
         )
         
-        /// 2. When - Deleting the directory
-        try folder.deleteDirectoryIfExists(using: context)
+        /// 2. When - Deleting the folder
+        try folder.deleteIfExists(using: context)
         
         /// 4. Then - These endpoints are called
-        let endpoints = context.called
-        #expect(endpoints.count == 2, "Exactly one endpoint should have been called.")
-        #expect(endpoints.contains(.locationExists), "The correct endpoint should have been called.")
-        #expect(endpoints.contains(.deleteLocation), "The correct endpoint should have been called.")
+        #expect(context.called == [.folderExists, .deleteLocation])
     }
     
     @Test("It throws an error if delete fails.")
@@ -131,8 +119,8 @@ struct DirectoryTests {
         let error = NSError(domain: "MockError", code: 1, userInfo: nil)
         
         let context = MockContext(
-            locationExistsHandler: { _ in
-                /// 1. Given - A directory that does exist
+            folderExistsHandler: { _ in
+                /// 1. Given - A folder that exists
                 return true
             },
             deleteLocationHandler: { _ in
@@ -142,18 +130,15 @@ struct DirectoryTests {
         )
         
         #expect(performing: {
-            /// 3. When - Deleting the directory
-            try folder.deleteDirectoryIfExists(using: context)
+            /// 3. When - Deleting the folder
+            try folder.deleteIfExists(using: context)
         }, throws: {
             /// 4. Then - An error is thrown
             return ($0 as NSError) == error
         })
         
         /// 5. Then - These endpoints are called
-        let endpoints = context.called
-        #expect(endpoints.count == 2, "Exactly two endpoints should have been called.")
-        #expect(endpoints.contains(.locationExists), "The correct endpoint should have been called.")
-        #expect(endpoints.contains(.deleteLocation), "The correct endpoint should have been called.")
+        #expect(context.called == [.folderExists, .deleteLocation])
     }
     
     @Test("It creates a resource with the correct name and enclosing folder.")
@@ -164,10 +149,10 @@ struct DirectoryTests {
         let resourceName = "test-file.txt"
 
         // 2. When - We create a resource using `resource(named:)`
-        let resource = folder.resource(named: resourceName)
+        let resource = folder.resource(filename: resourceName)
 
         // 3. Then - Verify the resource properties
-        #expect(resource.name == resourceName, "The resource should have the correct name.")
+        #expect(resource.filename == resourceName, "The resource should have the correct name.")
         #expect(resource.enclosingFolder.location == folder.location, "The enclosing folder should match the folder.")
     }
 }

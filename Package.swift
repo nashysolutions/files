@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "files",
+    defaultLocalization: .some("en"),
     platforms: [
         .iOS(.v16),
         .macOS(.v13),
@@ -18,7 +19,9 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Files"),
+            name: "Files",
+            resources: [.process("Resources")]
+        ),
         .testTarget(
             name: "FilesTests",
             dependencies: ["Files"]

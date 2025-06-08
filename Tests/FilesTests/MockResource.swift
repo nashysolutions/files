@@ -9,6 +9,6 @@ import Foundation
 import Files
 
 struct MockResource: File, ~Copyable {
-    let name: String
+    let filename: String
     let enclosingFolder: MockFolder
 }

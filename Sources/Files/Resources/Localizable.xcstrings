@@ -1,0 +1,90 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "delete.file.error.generic" : {
+      "comment" : "Generic user-facing error when file deletion fails. No technical detail included.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Something went wrong while removing a file. Please try again."
+          }
+        }
+      }
+    },
+    "load.file.error.decoding" : {
+      "comment" : "Shown when decoding a file into a resource fails.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Failed to decode the contents of the file %@."
+          }
+        }
+      }
+    },
+    "load.file.error.empty" : {
+      "comment" : "Shown when a file exists but contains no data.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The file %@ is empty."
+          }
+        }
+      }
+    },
+    "load.file.error.reading" : {
+      "comment" : "Shown when a file cannot be read. First is the file name, second is the system error.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Failed to read the file %1$@: %2$@."
+          }
+        }
+      }
+    },
+    "save.file.error.encoding" : {
+      "comment" : "Shown when encoding a resource fails. Avoids exposing internal keys or file names.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "We couldn’t save your data. Please try again."
+          }
+        }
+      }
+    },
+    "save.file.error.saving" : {
+      "comment" : "Shown when saving a file fails. General message, hides technical detail.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Saving the file didn’t work. Please try again."
+          }
+        }
+      }
+    },
+    "update.resource.error.generic" : {
+      "comment" : "Shown when an unexpected error occurs during a resource update.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Something went wrong while updating your data. Please try again."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

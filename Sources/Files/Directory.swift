@@ -14,10 +14,17 @@ public protocol Directory {
 
 public extension Directory {
     
+    /// Determines whether this directory exists.
+    /// - Parameter context: The `FileSystemContext` used for file system operations.
+    /// - Returns: `true` if a folder is found at the URL, otherwise `false`.
+    func exists(using context: FileSystemContext) -> Bool {
+        context.folderExists(at: location)
+    }
+    
     /// Ensures this directory (folder) exists at the specified URL, creating it if necessary.
-    /// - Parameter url: The location of the folder to check or create.
+    /// - Parameter context: The `FileSystemContext` used for file system operations.
     /// - Throws: An error if the operation to create the folder fails.
-    func createDirectoryIfNecessary(
+    func createIfNecessary(
         using context: FileSystemContext
     ) throws {
         try context
@@ -33,7 +40,7 @@ public extension Directory {
     ///
     /// - Parameter context: The `FileSystemContext` used for file system operations.
     /// - Throws: An error if the operation to delete the directory fails.
-    func deleteDirectoryIfExists(
+    func deleteIfExists(
         using context: FileSystemContext
     ) throws {
         try context
@@ -47,12 +54,14 @@ public extension Directory {
     /// This method creates an instance representing a file with the given name inside the current directory.
     /// The returned resource conforms to `File` and is non-copyable (`~Copyable`).
     ///
-    /// - Parameter name: The name of the resource (file) to retrieve.
+    /// - Parameter filename: The name of the resource (file) to retrieve.
     /// - Returns: A `File` instance representing the requested resource.
     /// - Note: The returned resource is non-copyable, meaning it cannot be duplicated or reassigned after consumption.
-    /// - SeeAlso: ``createResource(named:with:using:)``
-    func resource(named name: String) -> some File & ~Copyable {
-        Resource(name: name, enclosingFolder: self)
+    /// - SeeAlso: ``createResource(filename:with:using:)``
+    func resource(
+        filename: String
+    ) -> some File & ~Copyable {
+        Resource(filename: filename, enclosingFolder: self)
     }
     
     /// Creates a resource (file) in the directory with the given name and data.
@@ -66,13 +75,13 @@ public extension Directory {
     ///   - context: The `FileSystemContext` used for file system operations.
     /// - Throws: An error if creating the directory or writing the resource fails.
     func createResource(
-        named name: String,
+        filename name: String,
         with data: Data,
         using context: FileSystemContext
     ) throws {
-        try createDirectoryIfNecessary(using: context)
-        let resource = Resource(name: name, enclosingFolder: self)
-        try resource.write(data: data)
+        try createIfNecessary(using: context)
+        let resource = Resource(filename: name, enclosingFolder: self)
+        try resource.write(data: data, using: context)
     }
     
     /// Retrieves the expected location for a resource within the directory.
@@ -84,13 +93,13 @@ public extension Directory {
     ) -> URL where Resource: File & ~Copyable {
         location
             .appending(
-                component: resource.name,
+                component: resource.filename,
                 directoryHint: .notDirectory
             )
     }
 }
 
 private struct Resource<Folder: Directory>: ~Copyable, File {
-    let name: String
+    let filename: String
     let enclosingFolder: Folder
 }

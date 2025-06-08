@@ -9,5 +9,10 @@ import Foundation
 import Files
 
 struct MockFolder: Directory {
+    
     let location: URL
+    
+    func exists(using context: FileSystemContext) -> Bool {
+        context.folderExists(at: location)
+    }
 }
