@@ -94,40 +94,37 @@ print("File exists: \(exists)")
 
 etc
 
-### Wrapper
+### Wrappers
 
-You could build a wrapper like this for convenience
+You could build a wrapper like this for example
 
 ```swift
-struct SaveResource<Folder: Directory, Context: FileSystemContext> {
+public struct SaveResource<Folder: Directory, Context: FileSystemContext> {
     
     private let agent: Context
     private let folder: Folder
     private let encoder: JSONEncoder
-    private let storageKey: String
     
-    init(
+    public init(
         agent: Context,
         folder: Folder,
-        storageKey: String,
         encoder: JSONEncoder = .init()
     ) {
         self.agent = agent
         self.folder = folder
         self.encoder = encoder
-        self.storageKey = storageKey
     }
     
-    func save<R: Encodable>(resource: R) throws {
-        let data = try createData(from: resource, key: storageKey)
-        try save(data: data)
+    public func save<R: Encodable>(resource: R, withName name: String) throws {
+        let data = try createData(from: resource, key: name)
+        try save(data: data, withName: name)
     }
     
-    func save(data: Data) throws {
+    public func save(data: Data, withName name: String) throws {
         do {
-            try folder.createResource(named: storageKey, with: data, using: agent)
+            try folder.createResource(named: name, with: data, using: agent)
         } catch {
-            throw SaveError.fileSaveFailed(storageKey: storageKey, underlyingError: error)
+            throw SaveError.fileSaveFailed(storageKey: name, underlyingError: error)
         }
     }
     
@@ -138,6 +135,44 @@ struct SaveResource<Folder: Directory, Context: FileSystemContext> {
             throw SaveError.encodingFailed(storageKey: key)
         }
     }
+}
+```
+
+and use it like this
+
+```swift
+private let fileManager = FileManager.default
+
+private func documentsDirectory() throws -> URL {
+    try fileManager.url(
+        for: .documentDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: false
+    )
+}
+
+private func makeFolder() throws -> Folder {
+    let location = try documentsDirectory()
+    return Folder(location: location)
+}
+
+private struct Hello: Encodable {
+    let name: String
+}
+
+private func save(resource: Hello) throws {
+    let folder = try makeFolder()
+    let agent = FileSystemAgent(manager: fileManager)
+    let saver = SaveResource(agent: agent, folder: folder)
+    try saver.save(resource: resource, withName: "myKey")
+}
+
+private func delete(resource: Hello) throws {
+    let folder = try makeFolder()
+    let agent = FileSystemAgent(manager: fileManager)
+    let deleter = DeleteResource(agent: agent, folder: folder)
+    try deleter.delete(resourceName: "myKey")
 }
 ```
 
