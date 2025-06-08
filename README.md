@@ -31,10 +31,10 @@ Creating Concrete Types
 
 To work with files and directories, define your own concrete types conforming to File and Directory.
 
-⚠️ **Important:** While `Directory` and `File` do not enforce `~Copyable`, it is strongly recommended to adopt `~Copyable` to avoid unintended duplication of resources.
+⚠️ **Important:** While `File` does not enforce `~Copyable`, it is strongly recommended to adopt `~Copyable` to avoid unintended duplication of resources.
 
 ```swift
-struct Folder: Directory, ~Copyable {
+struct Folder: Directory {
     let location: URL
 }
 
@@ -94,7 +94,56 @@ print("File exists: \(exists)")
 
 etc
 
+### Wrapper
+
+You could build a wrapper like this for convenience
+
+```swift
+struct SaveResource<Folder: Directory, Context: FileSystemContext> {
+    
+    private let agent: Context
+    private let folder: Folder
+    private let encoder: JSONEncoder
+    private let storageKey: String
+    
+    init(
+        agent: Context,
+        folder: Folder,
+        storageKey: String,
+        encoder: JSONEncoder = .init()
+    ) {
+        self.agent = agent
+        self.folder = folder
+        self.encoder = encoder
+        self.storageKey = storageKey
+    }
+    
+    func save<R: Encodable>(resource: R) throws {
+        let data = try createData(from: resource, key: storageKey)
+        try save(data: data)
+    }
+    
+    func save(data: Data) throws {
+        do {
+            try folder.createResource(named: storageKey, with: data, using: agent)
+        } catch {
+            throw SaveError.fileSaveFailed(storageKey: storageKey, underlyingError: error)
+        }
+    }
+    
+    private func createData<R: Encodable>(from resource: R, key: String) throws -> Data {
+        do {
+            return try encoder.encode(resource)
+        } catch {
+            throw SaveError.encodingFailed(storageKey: key)
+        }
+    }
+}
+```
+
 ## Why Use `~Copyable`?
+
+Demo ![here](https://tinyurl.com/mpfx4udw)
 
 While the `File` and `Directory` protocols do not require `~Copyable`, it is **strongly recommended** to suppress `Copyable` in conforming types. This prevents unintended copies of objects that represent real-world file system entities. By ensuring instances are non-copyable:
 
