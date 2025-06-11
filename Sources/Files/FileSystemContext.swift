@@ -49,6 +49,11 @@ public protocol FileSystemContext {
     /// - Throws: An error if the operation fails.
     func createDirectory(at url: URL) throws
     
+    /// Removes a folder (directory) at the specified URL.
+    /// - Parameter url: The location where the folder should be created.
+    /// - Throws: An error if the operation fails.
+    func removeDirectory(at url: URL) throws
+    
     /// Writes data to a file at the specified URL with configurable write options.
     ///
     /// This method writes the provided data to the specified file. If the file exists, it will be overwritten unless

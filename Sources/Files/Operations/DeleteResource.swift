@@ -1,11 +1,12 @@
 //
 //  DeleteResource.swift
-//  persistence
+//  files
 //
 //  Created by Robert Nash on 06/02/2025.
 //
 
 import Foundation
+import ErrorPresentation
 
 /// A utility responsible for deleting a persisted file-based resource.
 ///
@@ -57,7 +58,7 @@ extension DeleteResourceError: CustomDebugStringConvertible {
     var debugDescription: String {
         switch self {
         case .fileDeleteFailed(let key, let error):
-            "Failed to delete the file named '\(key)': \(error.localizedDescription)."
+            "Failed to delete the file named '\(key)': \(error.localizedDescription)"
         }
     }
 }
@@ -74,6 +75,30 @@ extension DeleteResourceError: LocalizedCustomerFacingError {
                 bundle: .module,
                 comment: "Generic user-facing error when file deletion fails. No technical detail included."
             )
+        }
+    }
+}
+
+/// Conformance to `Equatable` for comparing deletion errors.
+///
+/// This implementation compares only the `storageKey` of the file that failed to delete.
+/// The `underlyingError` is not considered in the comparison, as it is typically
+/// system-generated and not `Equatable`.
+extension DeleteResourceError: Equatable {
+    
+    /// Returns a Boolean value indicating whether two `DeleteResourceError` values are equal.
+    ///
+    /// Only the `storageKey` is compared. The `underlyingError` is ignored for
+    /// the purposes of equality to allow predictable comparisons in testing and logic.
+    ///
+    /// - Parameters:
+    ///   - lhs: A `DeleteResourceError` value.
+    ///   - rhs: Another `DeleteResourceError` value to compare against.
+    /// - Returns: `true` if both errors are of the same case and have equal `storageKey` values; otherwise, `false`.
+    public static func == (lhs: DeleteResourceError, rhs: DeleteResourceError) -> Bool {
+        switch (lhs, rhs) {
+        case let (.fileDeleteFailed(lKey, _), .fileDeleteFailed(rKey, _)):
+            return lKey == rKey
         }
     }
 }

@@ -1,11 +1,12 @@
 //
 //  LoadResource.swift
-//  persistence
+//  files
 //
 //  Created by Robert Nash on 07/02/2025.
 //
 
 import Foundation
+import ErrorPresentation
 
 /// A utility that facilitates loading data and decoding resources from the file system.
 ///
@@ -115,7 +116,7 @@ extension LoadResourceError: CustomDebugStringConvertible {
         case .decodingFailed(let storageKey):
             return "Failed to decode the contents of the file with key '\(storageKey)'."
         case .fileReadFailed(let storageKey, let error):
-            return "Failed to read the file with key '\(storageKey)': \(error.localizedDescription)."
+            return "Failed to read the file with key '\(storageKey)': \(error.localizedDescription)"
         }
     }
 }

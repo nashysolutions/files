@@ -1,195 +1,108 @@
 # Files
-  
-![Swift](https://img.shields.io/badge/Swift-6.0-orange?logo=swift) ![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20macOS%20%7C%20visionOS%20%7C%20tvOS%20%7C%20watchOS-blue?logo=apple)
 
-A lightweight Swift library for managing file system resources in a protocol-oriented manner.
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fnashysolutions%2Ffiles%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/nashysolutions/files)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fnashysolutions%2Ffiles%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/nashysolutions/files)
+
+**Files** is a lightweight, protocol-oriented Swift library for working with file system resources. It supports modular, composable types for files and directories, and provides testable, injectable logic for reading, writing, and deleting data.
+
+---
 
 ## Features
 
-- Defines protocols for file system entities: `File` and `Directory`
-- Provides convenience methods for reading, writing, copying, and deleting files
-- Supports a `FileSystemContext` abstraction for file operations
-- Encourages non-copyable (`~Copyable`) implementations to maintain resource integrity
+- Protocols for `File` and `Directory` modelling
+- `FileSystemContext` abstraction for injecting logic or mocking
+- `FileSystemFolderStore` for Codable storage and file management
+- Log friendly and customer friendly Localized errors
+- Built-in support for testability and mocking
+- Strong preference for `~Copyable` to preserve resource identity
 
-## Installation
+---
 
-You can add this library to your Swift project using **Swift Package Manager**.
+## Quick Start
 
-### Swift Package Manager
-
-1. Open your Xcode project.
-2. Go to **File** → **Add Packages**.
-3. Enter the repository URL:
-
-```
-https://github.com/nashysolutions/files.git
-```
-
-## Getting Started
-
-Creating Concrete Types
-
-To work with files and directories, define your own concrete types conforming to File and Directory.
-
-⚠️ **Important:** While `File` does not enforce `~Copyable`, it is strongly recommended to adopt `~Copyable` to avoid unintended duplication of resources.
+### 1. Implement a `FileSystemContext`
 
 ```swift
-struct Folder: Directory {
-    let location: URL
-}
-
-struct Resource: File, ~Copyable {
-    let name: String
-    let enclosingFolder: Folder
-}
-```
-
-## Basic Usage
-
-Create a context that conforms to `FileSystemContext` for handling file system tasks:
-
-```swift
-struct Agent: FileSystemContext {
+struct LiveAgent: FileSystemContext {
     
-    let manager: FileManager
-    
-    init(manager: FileManager) {
-        self.manager = manager
+    private let liveContext = FileManager.default
+
+    func fileExists(at url: URL) -> Bool {
+        liveContext.fileExists(atPath: url.path())
     }
-    
-    // implement required functions here
-}
-```
 
-### Creating a Directory
-
-```swift
-let location: URL = /* some directory */
-let folder = Folder(location: location)
-try folder.createDirectoryIfNecessary(using: agent)
-```
-
-### Creating a File
-
-```swift
-let location: URL = /* some directory */
-let folder = Folder(location: location)
-let resource: some File & ~Copyable = folder.resource(named: "dogs.json")
-```
-
-### Writing a File
-
-```swift
-let file = Resource(name: "example.txt", enclosingFolder: folder)
-let data = Data("Hello, world!".utf8)
-try file.write(data: data)
-```
-
-### Checking File Existinece
-
-```swift
-let exists = file.exists(using: context)
-print("File exists: \(exists)")
-```
-
-etc
-
-### Wrappers
-
-You could build a wrapper like this for example
-
-```swift
-public struct SaveResource<Folder: Directory, Context: FileSystemContext> {
-    
-    private let agent: Context
-    private let folder: Folder
-    private let encoder: JSONEncoder
-    
-    public init(
-        agent: Context,
-        folder: Folder,
-        encoder: JSONEncoder = .init()
-    ) {
-        self.agent = agent
-        self.folder = folder
-        self.encoder = encoder
+    func folderExists(at url: URL) -> Bool {
+        var isDir: ObjCBool = false
+        let exists = liveContext.fileExists(atPath: url.path(), isDirectory: &isDir)
+        return exists && isDir.boolValue
     }
-    
-    public func save<R: Encodable>(resource: R, withName name: String) throws {
-        let data = try createData(from: resource, key: name)
-        try save(data: data, withName: name)
-    }
-    
-    public func save(data: Data, withName name: String) throws {
-        do {
-            try folder.createResource(named: name, with: data, using: agent)
-        } catch {
-            throw SaveError.fileSaveFailed(storageKey: name, underlyingError: error)
+
+    func url(for directory: FileSystemDirectory) throws -> URL {
+        if let path = directory.searchPath {
+            guard let resolved = liveContext.urls(for: path, in: .userDomainMask).first else {
+                throw LiveAgentError.unableToResolveSearchPath(path)
+            }
+            return resolved
         }
+        return liveContext.temporaryDirectory
+    }
+
+    func write(_ data: Data, to url: URL, options: NSData.WritingOptions) throws {
+        try data.write(to: url, options: options)
+    }
+
+    func read(from url: URL) throws -> Data {
+        try Data(contentsOf: url)
     }
     
-    private func createData<R: Encodable>(from resource: R, key: String) throws -> Data {
-        do {
-            return try encoder.encode(resource)
-        } catch {
-            throw SaveError.encodingFailed(storageKey: key)
-        }
-    }
+    // etc
+}
+
+enum LiveAgentError: Error {
+    case unableToResolveSearchPath(FileManager.SearchPathDirectory)
 }
 ```
 
-and use it like this
+---
+
+### 2. Use `FileSystemFolderStore`
 
 ```swift
-private let fileManager = FileManager.default
+let folder = Folder(location: "./Whatever")
+let agent = LiveAgent()
+try agent.moveResource(from: xURL, to: yURL)
+        
+let store = FileSystemFolderStore(agent: agent, folder: folder, kind: .caches)
 
-private func documentsDirectory() throws -> URL {
-    try fileManager.url(
-        for: .documentDirectory,
-        in: .userDomainMask,
-        appropriateFor: nil,
-        create: false
-    )
-}
+struct Greeting: Codable { let message: String }
 
-private func makeFolder() throws -> Folder {
-    let location = try documentsDirectory()
-    return Folder(location: location)
-}
+try store.saveResource(Greeting(message: "Hello!"), filename: "greeting.json")
 
-private struct Hello: Encodable {
-    let name: String
-}
-
-private func save(resource: Hello) throws {
-    let folder = try makeFolder()
-    let agent = FileSystemAgent(manager: fileManager)
-    let saver = SaveResource(agent: agent, folder: folder)
-    try saver.save(resource: resource, withName: "myKey")
-}
-
-private func delete(resource: Hello) throws {
-    let folder = try makeFolder()
-    let agent = FileSystemAgent(manager: fileManager)
-    let deleter = DeleteResource(agent: agent, folder: folder)
-    try deleter.delete(resourceName: "myKey")
-}
+let greeting: Greeting = try store.loadResource(filename: "greeting.json")
 ```
 
-## Why Use `~Copyable`?
+---
 
-Demo [here](https://tinyurl.com/mpfx4udw)
+### 3. Test With a Mock Context
 
-While the `File` and `Directory` protocols do not require `~Copyable`, it is **strongly recommended** to suppress `Copyable` in conforming types. This prevents unintended copies of objects that represent real-world file system entities. By ensuring instances are non-copyable:
+```swift
+let mock = MockContext(fileExistsHandler: { _ in true })
+```
 
-- **Resource Integrity**: Prevents duplicated instances representing the same file system object.
-- **Correct Mutations**: Guarantees modifications (e.g., move or delete) apply to a single, unique instance.
-- **Predictable State Management**: Avoids issues where multiple instances might reference the same file, leading to inconsistencies.
+---
 
-## Contributing
+## Notes on `~Copyable`
 
-Contributions are welcome! If you find any issues or have suggestions, please open a GitHub issue or submit a pull request.
+While not enforced, `~Copyable` is strongly recommended for all `File` and `Directory` conformers:
 
-## License
+- Prevents duplicate identity for the same file system location
+- Ensures mutation methods like `move`, `delete` apply consistently
+- Promotes safe and predictable resource handling
 
-This library is available under the MIT License. See the LICENSE file for more details.
+---
+
+## Usage Philosophy
+
+Use `FileSystemFolderStore` for most file-based logic.
+
+You can also use `File`, `Directory`, and `Folder` types on their own for structural modelling.

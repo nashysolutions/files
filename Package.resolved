@@ -1,0 +1,15 @@
+{
+  "originHash" : "e3a3dc9afb3c33abe7a404c1a04d38e313f9b608f4c7dcd8a0a8a4ed998f1040",
+  "pins" : [
+    {
+      "identity" : "error-presentation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nashysolutions/error-presentation.git",
+      "state" : {
+        "revision" : "fff6000d6642eebda879e3d57965541dd6a4aa47",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

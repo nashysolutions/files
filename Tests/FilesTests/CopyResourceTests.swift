@@ -7,7 +7,23 @@
 
 import Foundation
 import Testing
-import Files
+
+@testable import Files
+
+/*
+ let error = DeleteResourceError.fileDeleteFailed(storageKey: "example.json", underlyingError: CocoaError(.fileNoSuchFile))
+ 
+ // When: Retrieving the user-friendly description
+ let description = error.userFriendlyLocalizedDescription
+ 
+ // Then: It should match the defaultValue if no .strings file is loaded,
+ // or the localised string if available in the bundle
+ XCTAssertEqual(
+ description,
+ "Something went wrong while removing a file. Please try again.",
+ "Expected fallback default value from .module bundle to be used for internal error."
+ )
+ */
 
 @Suite
 struct CopyResourceTests {
@@ -29,11 +45,11 @@ struct CopyResourceTests {
         
         /// 3. And - A mock context with a copy handler that asserts input.
         let context = MockContext(copyResourceHandler:
-            URLExpectation.moveOrCopy(
-                expectedFrom: originalLocation,
-                expectedTo: folderB.location.appending(path: filename),
-                message: "Copy operation"
-            )
+                                    URLExpectation.moveOrCopy(
+                                        expectedFrom: originalLocation,
+                                        expectedTo: folderB.location.appending(path: filename),
+                                        message: "Copy operation"
+                                    )
         )
         
         /// 4. When - Copying the file to folder B
@@ -44,7 +60,7 @@ struct CopyResourceTests {
         #expect(endpoints.count == 1)
         #expect(endpoints.contains(.copyResource), "The correct endpoint should have been called.")
     }
-
+    
     @Test("It throws an error when copying fails.")
     func testCopyResourceThrowsError() throws {
         

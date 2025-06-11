@@ -1,11 +1,12 @@
 //
 //  UpdateResource.swift
-//  persistence
+//  files
 //
 //  Created by Robert Nash on 07/02/2025.
 //
 
 import Foundation
+import ErrorPresentation
 
 /// A utility that facilitates loading, modifying, and saving a persisted resource.
 ///

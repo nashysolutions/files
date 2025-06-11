@@ -1,11 +1,12 @@
 //
 //  SaveResource.swift
-//  persistence
+//  files
 //
 //  Created by Robert Nash on 07/02/2025.
 //
 
 import Foundation
+import ErrorPresentation
 
 /// A utility responsible for encoding and saving resources to the file system.
 ///
@@ -109,7 +110,7 @@ extension SaveResourceError: CustomDebugStringConvertible {
         case .encodingFailed(let storageKey):
             return "Failed to encode resource with key '\(storageKey)'."
         case .fileSaveFailed(let storageKey, let error):
-            return "Failed to save file with key '\(storageKey)': \(error.localizedDescription)."
+            return "Failed to save file with key '\(storageKey)': \(error.localizedDescription)"
         }
     }
 }

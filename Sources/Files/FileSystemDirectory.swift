@@ -32,7 +32,10 @@ public enum FileSystemDirectory: Sendable {
     ///
     /// Use this for short-lived files that can be deleted by the system at any time.
     case temporary
+}
 
+public extension FileSystemDirectory {
+    
     /// Returns the corresponding `FileManager.SearchPathDirectory` for this case, or `nil` for `.temporary`.
     var searchPath: FileManager.SearchPathDirectory? {
         switch self {
@@ -41,31 +44,5 @@ public enum FileSystemDirectory: Sendable {
         case .applicationSupport: .applicationSupportDirectory
         case .temporary: nil
         }
-    }
-
-    /// Creates a `FileSystemFolderStore` using the current directory kind.
-    ///
-    /// - Parameter agent: The file system context used to resolve the directory location.
-    /// - Returns: A configured `FileSystemFolderStore` targeting this directory kind.
-    /// - Throws: An error if the directory cannot be resolved.
-    public func folderStore<Agent: FileSystemContext>(using agent: Agent) throws -> FileSystemFolderStore<Agent> {
-        try FileSystemFolderStore(
-            agent: agent,
-            folder: folder(using: agent),
-            kind: self
-        )
-    }
-}
-
-private extension FileSystemDirectory {
-    
-    /// Resolves the `Folder` for this directory kind using the provided file system agent.
-    ///
-    /// - Parameter agent: The file system context used to resolve the location.
-    /// - Returns: A `Folder` representing the resolved file system location.
-    /// - Throws: An error if the location could not be resolved.
-    func folder<Agent: FileSystemContext>(using agent: Agent) throws -> Folder {
-        let location = try agent.url(for: self)
-        return Folder(location: location)
     }
 }

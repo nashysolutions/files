@@ -18,6 +18,7 @@ final class MockContext: FileSystemContext {
         case copyResource
         case deleteLocation
         case createDirectory
+        case removeDirectory
         case write
         case read
     }
@@ -30,6 +31,7 @@ final class MockContext: FileSystemContext {
     var copyResourceHandler: ((URL, URL) throws -> Void)?
     var deleteLocationHandler: ((URL) throws -> Void)?
     var createDirectoryHandler: ((URL) throws -> Void)?
+    var removeDirectoryHandler: ((URL) throws -> Void)?
     var directoryURLHandler: ((FileSystemDirectory) throws -> URL)?
     var writeHandler: ((Data, URL, NSData.WritingOptions) throws -> Void)?
     var readHandler: ((URL) throws -> Data)?
@@ -41,6 +43,7 @@ final class MockContext: FileSystemContext {
         copyResourceHandler: ((URL, URL) throws -> Void)? = nil,
         deleteLocationHandler: ((URL) throws -> Void)? = nil,
         createDirectoryHandler: ((URL) throws -> Void)? = nil,
+        removeDirectoryHandler: ((URL) throws -> Void)? = nil,
         directoryURLHandler: ((FileSystemDirectory) throws -> URL)? = nil,
         writeHandler: ((Data, URL, NSData.WritingOptions) throws -> Void)? = nil,
         readHandler: ((URL) throws -> Data)? = nil
@@ -51,6 +54,7 @@ final class MockContext: FileSystemContext {
         self.copyResourceHandler = copyResourceHandler
         self.deleteLocationHandler = deleteLocationHandler
         self.createDirectoryHandler = createDirectoryHandler
+        self.removeDirectoryHandler = removeDirectoryHandler
         self.directoryURLHandler = directoryURLHandler
         self.writeHandler = writeHandler
         self.readHandler = readHandler
@@ -79,6 +83,11 @@ final class MockContext: FileSystemContext {
     func deleteLocation(at url: URL) throws {
         called.append(.deleteLocation)
         try deleteLocationHandler?(url)
+    }
+    
+    func removeDirectory(at url: URL) throws {
+        called.append(.removeDirectory)
+        try removeDirectoryHandler?(url)
     }
     
     func createDirectory(at url: URL) throws {
