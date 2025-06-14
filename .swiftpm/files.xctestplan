@@ -1,0 +1,32 @@
+{
+  "configurations" : [
+    {
+      "id" : "C97DAC05-6CC1-44AC-BCE9-01092D237750",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:",
+          "identifier" : "Files",
+          "name" : "Files"
+        }
+      ]
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "FilesTests",
+        "name" : "FilesTests"
+      }
+    }
+  ],
+  "version" : 1
+}
