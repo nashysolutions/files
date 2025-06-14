@@ -1,7 +1,8 @@
 # Files
 
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fnashysolutions%2Ffiles%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/nashysolutions/files)
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fnashysolutions%2Ffiles%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/nashysolutions/files)
+
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fnashysolutions%2Ffiles%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/nashysolutions/files)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fnashysolutions%2Ffiles%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/nashysolutions/files)
 
 **Files** is a lightweight, protocol-oriented Swift library for working with file system resources. It supports modular, composable types for files and directories, and provides testable, injectable logic for reading, writing, and deleting data.
 
