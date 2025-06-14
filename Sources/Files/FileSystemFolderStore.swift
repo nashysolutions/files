@@ -27,20 +27,27 @@ public struct FileSystemFolderStore<Agent: FileSystemContext>: FileSystemOperati
     /// The semantic type of the folder (e.g. `.documents`, `.applicationSupport`).
     public let kind: FileSystemDirectory
 
-    /// Creates a new `FileSystemFolderStore` by resolving a folder path for the given `kind`.
+
+    /// Creates a `FileSystemFolderStore` scoped to an optional subfolder inside the specified base directory kind.
     ///
-    /// This is useful when your application logic works in logical file spaces (e.g., app support, documents),
-    /// and you want to perform file operations scoped to that directory.
+    /// This is useful for segmenting files within a known directory, such as creating a `temp/images` folder.
+    /// If `subfolder` is `nil`, the base directory is used directly.
     ///
     /// - Parameters:
-    ///   - agent: The file system context used to perform operations.
-    ///   - kind: The semantic directory kind (such as `.documents`, `.caches`, etc.) that will be resolved into a folder path.
-    ///
-    /// - Throws: An error if the agent fails to resolve the URL for the directory kind.
-    public init(agent: Agent, kind: FileSystemDirectory) throws {
+    ///   - agent: The file system agent used for performing file system operations.
+    ///   - kind: The semantic directory kind (e.g., `.temporary`, `.caches`).
+    ///   - subfolder: An optional subdirectory name inside the specified `kind`.
+    /// - Throws: An error if the base directory cannot be resolved or the subfolder cannot be created.
+    public init(agent: Agent, kind: FileSystemDirectory, subfolder: String? = nil) throws {
         self.agent = agent
-        let url = try agent.url(for: kind)
-        self.folder = Folder(location: url)
         self.kind = kind
+
+        let baseURL = try agent.url(for: kind)
+        let finalURL = subfolder.map {
+            baseURL.appendingPathComponent($0, isDirectory: true)
+        } ?? baseURL
+
+        try agent.createDirectoryIfNecessary(at: finalURL)
+        self.folder = Folder(location: finalURL)
     }
 }
