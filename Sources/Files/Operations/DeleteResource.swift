@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import ErrorPresentation
 
 /// A utility responsible for deleting a persisted file-based resource.
 ///
@@ -63,10 +62,10 @@ extension DeleteResourceError: CustomDebugStringConvertible {
     }
 }
 
-extension DeleteResourceError: LocalizedCustomerFacingError {
+extension DeleteResourceError: LocalizedError {
     
     /// A simplified, user-friendly message suitable for display in alerts or UI.
-    public var userFriendlyLocalizedDescription: String {
+    public var errorDescription: String? {
         switch self {
         case .fileDeleteFailed:
             return String(

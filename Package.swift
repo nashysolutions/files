@@ -16,15 +16,9 @@ let package = Package(
             name: "Files",
             targets: ["Files"]),
     ],
-    dependencies: [
-        .package(url: "https://github.com/nashysolutions/error-presentation.git", .upToNextMinor(from: "1.0.0")),
-    ],
     targets: [
         .target(
             name: "Files",
-            dependencies: [
-                .product(name: "ErrorPresentation", package: "error-presentation")
-            ],
             resources: [.process("Resources")]
         ),
         .testTarget(

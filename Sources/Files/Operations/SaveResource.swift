@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import ErrorPresentation
 
 /// A utility responsible for encoding and saving resources to the file system.
 ///
@@ -115,9 +114,9 @@ extension SaveResourceError: CustomDebugStringConvertible {
     }
 }
 
-extension SaveResourceError: LocalizedCustomerFacingError {
+extension SaveResourceError: LocalizedError {
     
-    var userFriendlyLocalizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case .encodingFailed:
             return String(

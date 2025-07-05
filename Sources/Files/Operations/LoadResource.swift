@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import ErrorPresentation
 
 /// A utility that facilitates loading data and decoding resources from the file system.
 ///
@@ -121,9 +120,9 @@ extension LoadResourceError: CustomDebugStringConvertible {
     }
 }
 
-extension LoadResourceError: LocalizedCustomerFacingError {
+extension LoadResourceError: LocalizedError {
     
-    var userFriendlyLocalizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case .emptyFile(let storageKey):
             return String(

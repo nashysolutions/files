@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import ErrorPresentation
 
 /// A utility that facilitates loading, modifying, and saving a persisted resource.
 ///
@@ -93,15 +92,15 @@ extension UpdateResourceError: CustomDebugStringConvertible {
     }
 }
 
-extension UpdateResourceError: LocalizedCustomerFacingError {
+extension UpdateResourceError: LocalizedError {
     
-    var userFriendlyLocalizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case .loadError(let underlyingError):
-            return underlyingError.userFriendlyLocalizedDescription
+            return underlyingError.localizedDescription
             
         case .saveError(let underlyingError):
-            return underlyingError.userFriendlyLocalizedDescription
+            return underlyingError.localizedDescription
             
         case .unexpected:
             return String(
