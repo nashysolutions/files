@@ -21,7 +21,7 @@ struct DeleteResourceErrorTests {
         )
         
         #expect(
-            error.userFriendlyLocalizedDescription == "Something went wrong while removing a file. Please try again."
+            error.errorDescription == "Something went wrong while removing a file. Please try again."
         )
     }
     

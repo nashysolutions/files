@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "files",
-    defaultLocalization: .some("en"),
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v16),
         .macOS(.v13),
