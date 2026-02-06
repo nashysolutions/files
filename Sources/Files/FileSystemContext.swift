@@ -90,6 +90,17 @@ public protocol FileSystemContext {
     /// This method returns the URLs of the items contained in the directory located at the given URL.
     /// It mirrors the semantics of `FileManager.contentsOfDirectory(at:includingPropertiesForKeys:options:)`.
     ///
+    /// Behaviour notes:
+    /// - Each item in the directory results in one entry in the returned array.
+    /// - If `includingPropertiesForKeys` is non-empty, the file system may perform additional
+    ///   metadata lookups per item to prefetch the requested resource values.
+    /// - Hidden files, package descendants, and other entries may be skipped depending on `options`.
+    ///
+    /// Complexity:
+    /// - Time: O(n) in the number of directory entries returned, excluding underlying file-system
+    ///   and IO latency. Prefetching resource keys increases per-item cost.
+    /// - Space: O(n) for the returned array of URLs.
+    ///
     /// - Parameters:
     ///   - url: The directory to enumerate.
     ///   - keys: Resource keys to prefetch for the returned URLs.
