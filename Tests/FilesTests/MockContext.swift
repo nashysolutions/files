@@ -21,6 +21,7 @@ final class MockContext: FileSystemContext {
         case removeDirectory
         case write
         case read
+        case contentsOfDirectory
     }
     
     var called: [Endpoint] = []
@@ -35,6 +36,7 @@ final class MockContext: FileSystemContext {
     var directoryURLHandler: ((FileSystemDirectory) throws -> URL)?
     var writeHandler: ((Data, URL, NSData.WritingOptions) throws -> Void)?
     var readHandler: ((URL) throws -> Data)?
+    var contentsOfDirectoryHandler: ((URL, [URLResourceKey], FileManager.DirectoryEnumerationOptions) throws -> [URL])?
     
     init(
         fileExistsHandler: ((URL) -> Bool)? = nil,
@@ -46,7 +48,8 @@ final class MockContext: FileSystemContext {
         removeDirectoryHandler: ((URL) throws -> Void)? = nil,
         directoryURLHandler: ((FileSystemDirectory) throws -> URL)? = nil,
         writeHandler: ((Data, URL, NSData.WritingOptions) throws -> Void)? = nil,
-        readHandler: ((URL) throws -> Data)? = nil
+        readHandler: ((URL) throws -> Data)? = nil,
+        contentsOfDirectoryHandler: ((URL, [URLResourceKey], FileManager.DirectoryEnumerationOptions) throws -> [URL])? = nil
     ) {
         self.fileExistsHandler = fileExistsHandler
         self.folderExistsHandler = folderExistsHandler
@@ -58,6 +61,7 @@ final class MockContext: FileSystemContext {
         self.directoryURLHandler = directoryURLHandler
         self.writeHandler = writeHandler
         self.readHandler = readHandler
+        self.contentsOfDirectoryHandler = contentsOfDirectoryHandler
     }
 
     func fileExists(at url: URL) -> Bool {
@@ -103,6 +107,18 @@ final class MockContext: FileSystemContext {
     func read(from url: URL) throws -> Data {
         called.append(.read)
         return try readHandler?(url) ?? Data()
+    }
+    
+    func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey],
+        options: FileManager.DirectoryEnumerationOptions
+    ) throws -> [URL] {
+        called.append(.contentsOfDirectory)
+        if let handler = contentsOfDirectoryHandler {
+            return try handler(url, keys, options)
+        }
+        return []
     }
     
     func url(for directory: FileSystemDirectory) throws -> URL {

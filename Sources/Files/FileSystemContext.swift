@@ -84,6 +84,23 @@ public protocol FileSystemContext {
     /// - Returns: The resolved file system URL.
     /// - Throws: An error if the directory cannot be resolved (e.g., access denied or not found).
     func url(for directory: FileSystemDirectory) throws -> URL
+
+    /// Lists the contents of a directory at the specified URL.
+    ///
+    /// This method returns the URLs of the items contained in the directory located at the given URL.
+    /// It mirrors the semantics of `FileManager.contentsOfDirectory(at:includingPropertiesForKeys:options:)`.
+    ///
+    /// - Parameters:
+    ///   - url: The directory to enumerate.
+    ///   - keys: Resource keys to prefetch for the returned URLs.
+    ///   - options: Options that affect the enumeration behavior.
+    /// - Returns: An array of URLs for the items in the directory.
+    /// - Throws: An error if the directory cannot be read or enumerated.
+    func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey],
+        options: FileManager.DirectoryEnumerationOptions
+    ) throws -> [URL]
 }
 
 public extension FileSystemContext {
@@ -105,5 +122,115 @@ public extension FileSystemContext {
         if folderExists(at: url) == true {
             try deleteLocation(at: url)
         }
+    }
+}
+
+// MARK: - Error Mapping
+public enum FileSystemError: Error {
+    case alreadyExists(URL)
+    case notFound(URL)
+    case permissionDenied(URL)
+    case invalidDestination(URL)
+    case invalidSource(URL)
+    case underlying(Error)
+}
+
+public extension FileSystemContext {
+    
+    /// Moves a resource, with optional overwrite behavior.
+    /// - Parameters:
+    ///   - fromURL: Source URL.
+    ///   - toURL: Destination URL.
+    ///   - overwrite: If true and destination exists, it will be removed before moving.
+    func moveResource(from fromURL: URL, to toURL: URL, overwrite: Bool) throws {
+        // Ensure source exists
+        guard fileExists(at: fromURL) || folderExists(at: fromURL) else {
+            throw FileSystemError.notFound(fromURL)
+        }
+        // Handle destination existence
+        if fileExists(at: toURL) || folderExists(at: toURL) {
+            if overwrite {
+                do { try deleteLocation(at: toURL) } catch { throw mapFileManagerError(error, url: toURL) }
+            } else {
+                throw FileSystemError.alreadyExists(toURL)
+            }
+        }
+        do { try moveResource(from: fromURL, to: toURL) } catch { throw mapFileManagerError(error, url: toURL) }
+    }
+
+    /// Copies a resource, with optional overwrite behavior.
+    /// - Parameters:
+    ///   - fromURL: Source URL.
+    ///   - toURL: Destination URL.
+    ///   - overwrite: If true and destination exists, it will be removed before copying.
+    func copyResource(from fromURL: URL, to toURL: URL, overwrite: Bool) throws {
+        // Ensure source exists
+        guard fileExists(at: fromURL) || folderExists(at: fromURL) else {
+            throw FileSystemError.notFound(fromURL)
+        }
+        // Handle destination existence
+        if fileExists(at: toURL) || folderExists(at: toURL) {
+            if overwrite {
+                do { try deleteLocation(at: toURL) } catch { throw mapFileManagerError(error, url: toURL) }
+            } else {
+                throw FileSystemError.alreadyExists(toURL)
+            }
+        }
+        do { try copyResource(from: fromURL, to: toURL) } catch { throw mapFileManagerError(error, url: toURL) }
+    }
+
+    /// Maps common file system errors to `FileSystemError` for clearer diagnostics.
+    /// - Note: This provides a best-effort mapping and falls back to `.underlying`.
+    private func mapFileManagerError(_ error: Error, url: URL) -> FileSystemError {
+        let nsError = error as NSError
+        switch (nsError.domain, nsError.code) {
+        case (NSCocoaErrorDomain, NSFileWriteFileExistsError):
+            return .alreadyExists(url)
+        case (NSCocoaErrorDomain, NSFileNoSuchFileError):
+            return .notFound(url)
+        case (NSCocoaErrorDomain, NSFileReadNoPermissionError),
+             (NSCocoaErrorDomain, NSFileWriteNoPermissionError):
+            return .permissionDenied(url)
+        default:
+            return .underlying(error)
+        }
+    }
+}
+
+public extension FileSystemContext {
+    
+    /// Writes data to a file, enforcing `.atomic` by default.
+    /// - Parameters:
+    ///   - data: The data to write.
+    ///   - url: Destination URL.
+    ///   - options: Additional write options to combine with `.atomic` (default is empty set).
+    func write(_ data: Data, to url: URL, options: NSData.WritingOptions = []) throws {
+        var finalOptions = options
+        finalOptions.insert(.atomic)
+        try write(data, to: url, options: finalOptions)
+    }
+    
+    /// Writes data only if it differs from the existing file contents, enforcing `.atomic` by default.
+    ///
+    /// This helper reduces unnecessary disk writes and avoids triggering superfluous file change notifications
+    /// (e.g., for observers or backup systems) when the content is unchanged. It also helps preserve file metadata
+    /// like modification dates when there is no content change.
+    /// - Parameters:
+    ///   - data: The data to write.
+    ///   - url: Destination URL.
+    ///   - options: Additional write options to combine with `.atomic` (default is empty set).
+    /// - Returns: `true` if a write occurred, `false` if the existing contents were identical and no write was performed.
+    @discardableResult
+    func writeIfChanged(_ data: Data, to url: URL, options: NSData.WritingOptions = []) throws -> Bool {
+        if fileExists(at: url) {
+            do {
+                let existing = try read(from: url)
+                if existing == data { return false }
+            } catch {
+                // If we fail to read, fall through to writing and surface any write error.
+            }
+        }
+        try write(data, to: url, options: options)
+        return true
     }
 }

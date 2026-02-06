@@ -7,7 +7,8 @@
 
 import Foundation
 import Testing
-import Files
+
+@testable import Files
 
 // Ensures tests execute sequentially to avoid race conditions with the file system
 @globalActor actor TestActor {
@@ -48,7 +49,7 @@ struct LiveAgentTests {
             let location: URL
         }
 
-        struct Resource: File {
+        struct Resource: StoredItem {
             let filename: String
             let enclosingFolder: Folder
         }
@@ -72,5 +73,54 @@ struct LiveAgentTests {
 
         // 4. Then - The file should now exist
         #expect(resource.exists(using: agent), "The resource should exist after creation.")
+    }
+
+    @Test("It throws an error when reading a nonexistent file.")
+    func testReadNonexistentFileThrows() throws {
+        let agent = LiveAgent()
+        let folder = MockFolder(location: agent.testFolderLocation())
+        let file = MockResource(filename: "no-such-file", enclosingFolder: folder)
+        defer { try? agent.removeDirectory(at: folder.location) }
+        do {
+            _ = try file.read(using: agent)
+            Issue.record("Expected error when reading nonexistent file.")
+        } catch {
+            #expect(true, "Caught expected error: \(error)")
+        }
+    }
+
+    @Test("It throws an error when deleting a nonexistent file.")
+    func testDeleteNonexistentFileThrows() throws {
+        let agent = LiveAgent()
+        let folder = MockFolder(location: agent.testFolderLocation())
+        let file = MockResource(filename: "no-such-file", enclosingFolder: folder)
+        defer { try? agent.removeDirectory(at: folder.location) }
+        do {
+            try file.delete(using: agent)
+            Issue.record("Expected error when deleting nonexistent file.")
+        } catch {
+            #expect(true, "Caught expected error: \(error)")
+        }
+    }
+
+    @Test("It throws an error when decoding invalid data.")
+    func testDecodeInvalidDataThrows() throws {
+        struct Folder: Directory { let location: URL }
+        struct Corrupt: Codable { let broken: Int }
+        let agent = LiveAgent()
+        let folder = Folder(location: agent.testFolderLocation())
+        let name = "corrupt.json"
+        let resource = folder.resource(filename: name)
+        let invalidData = try #require("not-a-json-object".data(using: .utf8))
+        defer { try? agent.removeDirectory(at: folder.location) }
+        try folder.createIfNecessary(using: agent)
+        try invalidData.write(to: resource.location)
+        do {
+            let loader = LoadResource(agent: agent)
+            _ = try loader.loadResource(named: name, location: folder) as Corrupt
+            Issue.record("Expected error when decoding invalid data.")
+        } catch {
+            #expect(true, "Caught expected error: \(error)")
+        }
     }
 }

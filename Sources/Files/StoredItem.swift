@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  StoredItem.swift
 //  files
 //
 //  Created by Robert Nash on 09/01/2025.
@@ -8,7 +8,7 @@
 import Foundation
 
 /// A protocol representing a file resource with a name and a containing folder.
-public protocol File: ~Copyable {
+public protocol StoredItem: ~Copyable {
     
     associatedtype Folder: Directory
     
@@ -19,41 +19,41 @@ public protocol File: ~Copyable {
     var enclosingFolder: Folder { get }
 }
 
-public extension File where Self: ~Copyable {
+public extension StoredItem where Self: ~Copyable {
     
-    /// The location of the file as a URL.
+    /// The location of the item as a URL.
     var location: URL {
         enclosingFolder.location.appending(component: filename, directoryHint: .notDirectory)
     }
     
-    /// Determines whether the file exists in the file system context.
+    /// Determines whether the item exists in the file system context.
     func exists<Context: FileSystemContext>(using context: Context) -> Bool {
         context.fileExists(at: location)
     }
 
-    /// Reads the contents of the file as data via the provided file system context.
+    /// Reads the contents of the item as data via the provided file system context.
     func read<Context: FileSystemContext>(using context: Context) throws -> Data {
         try context.read(from: location)
     }
 
-    /// Writes data to the file via the provided file system context.
+    /// Writes data to the item via the provided file system context.
     func write<Context: FileSystemContext>(data: Data, using context: Context, options: NSData.WritingOptions = []) throws {
         try context.write(data, to: location, options: options)
     }
 
-    /// Copies the file to a specified folder using the given file system context.
+    /// Copies the item to a specified folder using the given file system context.
     func copy<DestinationFolder: Directory, Context: FileSystemContext>(to folder: DestinationFolder, using context: Context) throws {
         let destination = folder.resourceLocation(for: self)
         try context.copyResource(from: location, to: destination)
     }
 
-    /// Moves the file to a specified folder using the given file system context.
+    /// Moves the item to a specified folder using the given file system context.
     consuming func move<DestinationFolder: Directory, Context: FileSystemContext>(to folder: DestinationFolder, using context: Context) throws {
         let destination = folder.resourceLocation(for: self)
         try context.moveResource(from: location, to: destination)
     }
 
-    /// Deletes the file using the specified file system context.
+    /// Deletes the item using the specified file system context.
     consuming func delete(using context: FileSystemContext) throws {
         try context.deleteLocation(at: location)
     }

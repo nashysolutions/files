@@ -25,15 +25,15 @@ struct LiveAgent: FileSystemContext {
     }
 
     func moveResource(from fromURL: URL, to toURL: URL) throws {
-        fatalError("LiveAgent.moveResource is not yet implemented.")
+        try liveContext.moveItem(at: fromURL, to: toURL)
     }
 
     func copyResource(from fromURL: URL, to toURL: URL) throws {
-        fatalError("LiveAgent.copyResource is not yet implemented.")
+        try liveContext.copyItem(at: fromURL, to: toURL)
     }
 
     func deleteLocation(at url: URL) throws {
-        fatalError("LiveAgent.deleteLocation is not yet implemented.")
+        try liveContext.removeItem(at: url)
     }
 
     func createDirectory(at url: URL) throws {
@@ -68,9 +68,14 @@ struct LiveAgent: FileSystemContext {
     func read(from url: URL) throws -> Data {
         try Data(contentsOf: url)
     }
+    
+    func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [URLResourceKey], options: FileManager.DirectoryEnumerationOptions) throws -> [URL] {
+        return try liveContext.contentsOfDirectory(at: url, includingPropertiesForKeys: keys, options: options)
+    }
 }
 
 /// Error types specific to `LiveAgent`.
 enum LiveAgentError: Error {
     case unableToResolveSearchPath(FileManager.SearchPathDirectory)
 }
+
