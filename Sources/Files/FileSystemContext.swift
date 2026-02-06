@@ -209,28 +209,4 @@ public extension FileSystemContext {
         finalOptions.insert(.atomic)
         try write(data, to: url, options: finalOptions)
     }
-    
-    /// Writes data only if it differs from the existing file contents, enforcing `.atomic` by default.
-    ///
-    /// This helper reduces unnecessary disk writes and avoids triggering superfluous file change notifications
-    /// (e.g., for observers or backup systems) when the content is unchanged. It also helps preserve file metadata
-    /// like modification dates when there is no content change.
-    /// - Parameters:
-    ///   - data: The data to write.
-    ///   - url: Destination URL.
-    ///   - options: Additional write options to combine with `.atomic` (default is empty set).
-    /// - Returns: `true` if a write occurred, `false` if the existing contents were identical and no write was performed.
-    @discardableResult
-    func writeIfChanged(_ data: Data, to url: URL, options: NSData.WritingOptions = []) throws -> Bool {
-        if fileExists(at: url) {
-            do {
-                let existing = try read(from: url)
-                if existing == data { return false }
-            } catch {
-                // If we fail to read, fall through to writing and surface any write error.
-            }
-        }
-        try write(data, to: url, options: options)
-        return true
-    }
 }
