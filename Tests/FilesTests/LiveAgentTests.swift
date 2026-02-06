@@ -123,4 +123,35 @@ struct LiveAgentTests {
             #expect(true, "Caught expected error: \(error)")
         }
     }
+    
+    @Test("It correctly sums the total size of all regular files in a folder.")
+    func testTotalSizeOfFiles() throws {
+
+        // Given - A unique temporary folder and a store
+        let agent = LiveAgent()
+        let uniqueName = UUID().uuidString
+        let store = try FileSystemFolderStore(agent: agent, kind: .temporary, subfolder: uniqueName)
+        let testDir = store.folder.location
+        try? agent.removeDirectory(at: testDir)
+        if agent.folderExists(at: testDir) {
+            Issue.record("Test setup failed: The test directory '\(testDir.path)' could not be deleted and still exists.")
+        }
+        defer { try? agent.removeDirectory(at: testDir) }
+        try store.folder.createIfNecessary(using: agent)
+
+        // When - Creating files of known size in the folder
+        let data1 = Data(repeating: 1, count: 128)
+        let data2 = Data(repeating: 2, count: 512)
+        let data3 = Data() // Zero-byte
+        try store.folder.createResource(filename: "file1.bin", with: data1, using: agent)
+        try store.folder.createResource(filename: "file2.bin", with: data2, using: agent)
+        try store.folder.createResource(filename: "file3.bin", with: data3, using: agent)
+        
+        // Then - The reported total matches the sum of their sizes
+        let expectedTotal = Int64(data1.count + data2.count + data3.count)
+        #expect(expectedTotal > 0)
+        let actualTotal = try store.totalSizeOfFiles()
+        #expect(actualTotal > 0)
+        #expect(actualTotal == expectedTotal, "Total size should equal the sum of all file sizes: \(expectedTotal)")
+    }
 }
