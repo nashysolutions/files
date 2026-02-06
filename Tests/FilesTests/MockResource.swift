@@ -8,7 +8,7 @@
 import Foundation
 import Files
 
-struct MockResource: File, ~Copyable {
+struct MockResource: StoredItem, ~Copyable {
     let filename: String
     let enclosingFolder: MockFolder
 }

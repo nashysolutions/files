@@ -10,10 +10,10 @@
 
 ## Features
 
-- Protocols for `File` and `Directory` modelling
+- Protocols for `StoredItem` (file) and `Directory` modelling
 - `FileSystemContext` abstraction for injecting logic or mocking
 - `FileSystemFolderStore` for Codable storage and file management
-- Log friendly and customer friendly Localized errors
+- Log friendly and user friendly Localized errors
 - Built-in support for testability and mocking
 - Strong preference for `~Copyable` to preserve resource identity
 
@@ -94,16 +94,8 @@ let mock = MockContext(fileExistsHandler: { _ in true })
 
 ## Notes on `~Copyable`
 
-While not enforced, `~Copyable` is strongly recommended for all `File` and `Directory` conformers:
+While not enforced, `~Copyable` is strongly recommended for all `StoredItem` and `Directory` conformers:
 
 - Prevents duplicate identity for the same file system location
 - Ensures mutation methods like `move`, `delete` apply consistently
 - Promotes safe and predictable resource handling
-
----
-
-## Usage Philosophy
-
-Use `FileSystemFolderStore` for most file-based logic.
-
-You can also use `File`, `Directory`, and `Folder` types on their own for structural modelling.
